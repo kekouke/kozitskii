@@ -3,6 +3,7 @@ package com.kekouke.movies
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
 import com.kekouke.movies.data.KinopoiskApiService
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -21,10 +22,15 @@ class MainActivity : AppCompatActivity() {
         compositeDisposable.add(this)
     }
 
+    private lateinit var rvMovies: RecyclerView
+    private val moviesAdapter = MoviesAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        initializeView()
+        setupRecyclerView()
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://kinopoiskapiunofficial.tech/api/")
@@ -37,12 +43,20 @@ class MainActivity : AppCompatActivity() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 {
-                    Log.d("MainActivity", it.toString())
+                    moviesAdapter.movies = it.movies
                 },
                 {
                     Log.d("MainActivity", it.toString())
                 }
         ).addTo(compositeDisposable)
+    }
+
+    private fun setupRecyclerView() {
+        rvMovies.adapter = moviesAdapter
+    }
+
+    private fun initializeView() {
+        rvMovies = findViewById(R.id.rv_movies)
     }
 
     override fun onDestroy() {
