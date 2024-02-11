@@ -1,21 +1,20 @@
-package com.kekouke.movies
+package com.kekouke.movies.presentation
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.kekouke.movies.R
 import com.kekouke.movies.data.Movie
 
-class MoviesAdapter : RecyclerView.Adapter<MoviesAdapter.MovieViewHolder>() {
+class MoviesAdapter : ListAdapter<Movie, MoviesAdapter.MovieViewHolder>(MovieDiffUtilCallback()) {
 
-    var movies: List<Movie> = emptyList()
-        set(value) {
-            field = value
-            notifyDataSetChanged()
-        }
+    var onReachEnd: (() ->Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(
@@ -27,7 +26,7 @@ class MoviesAdapter : RecyclerView.Adapter<MoviesAdapter.MovieViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
-        val movie = movies[position]
+        val movie = getItem(position)
         with (holder) {
             tvName.text = movie.name
             tvInformation.text = movie.year
@@ -35,10 +34,13 @@ class MoviesAdapter : RecyclerView.Adapter<MoviesAdapter.MovieViewHolder>() {
                 .load(movie.posterUrlPreview)
                 .into(ivPreviewPoster)
         }
+        if (wasReachedEnd(position, 10)) {
+            onReachEnd?.invoke()
+        }
     }
 
-    override fun getItemCount(): Int {
-        return movies.size
+    private fun wasReachedEnd(position: Int, offset: Int): Boolean {
+        return position >= itemCount - offset
     }
 
     class MovieViewHolder(view: View) : RecyclerView.ViewHolder(view) {
