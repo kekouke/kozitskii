@@ -5,17 +5,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.kekouke.movies.data.Movie
+import com.kekouke.movies.data.MovieDetail
 import com.kekouke.movies.data.MovieRepository
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.functions.Consumer
 import io.reactivex.rxjava3.schedulers.Schedulers
 
 class MainViewModel : ViewModel() {
 
     private val repository = MovieRepository()
     private val compositeDisposable = CompositeDisposable()
-
 
     private var loadedMovies: MutableList<Movie>? = null
     private var _movies: MutableLiveData<List<Movie>> = MutableLiveData()
@@ -59,21 +58,6 @@ class MainViewModel : ViewModel() {
                 }
             )
         compositeDisposable.add(disposable)
-    }
-
-    fun getMovieDetailById() {
-        repository.getMovieDetailById(263531)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                {
-                    Log.d("MainViewModel", it.toString())
-
-                },
-                {
-                    Log.d("MainViewModel", it.toString())
-                }
-            )
     }
 
     override fun onCleared() {

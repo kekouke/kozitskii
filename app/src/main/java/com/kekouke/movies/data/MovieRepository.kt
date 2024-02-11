@@ -13,5 +13,4 @@ class MovieRepository {
     fun getMovieDetailById(id: Int): Single<MovieDetail> {
         return kinopoiskAPI.getMovieDetailById(id)
     }
-
 }

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
+import com.kekouke.movies.data.Movie
 import com.kekouke.movies.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -24,11 +25,16 @@ class MainActivity : AppCompatActivity() {
 
         binding.rvMovies.adapter = moviesAdapter.apply {
             onReachEnd = viewModel::loadMovies
+            onMovieClick = {
+                launchMovieDetailActivity(it)
+            }
         }
 
-        viewModel.getMovieDetailById()
-
         observeViewModel()
+    }
+
+    private fun launchMovieDetailActivity(movie: Movie) {
+        startActivity(MovieDetailActivity.newIntent(this, movie.id))
     }
 
     private fun observeViewModel() {

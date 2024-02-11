@@ -9,9 +9,5 @@ data class MovieDetail(
     @SerializedName("year") val year: Int,
     @SerializedName("description") val description: String,
     @SerializedName("genres") val genres: List<Genre>,
-) {
-    override fun toString(): String {
-        return "MovieDetail(id=$id, name='$name', posterUrl='$posterUrl'," +
-                " year=$year, description='$description', genres=$genres)"
-    }
-}
+    @SerializedName("countries") val countries: List<Country>,
+)

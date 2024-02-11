@@ -1,6 +1,5 @@
 package com.kekouke.movies.presentation
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +14,7 @@ import com.kekouke.movies.data.Movie
 class MoviesAdapter : ListAdapter<Movie, MoviesAdapter.MovieViewHolder>(MovieDiffUtilCallback()) {
 
     var onReachEnd: (() ->Unit)? = null
+    var onMovieClick: ((Movie) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(
@@ -33,6 +33,9 @@ class MoviesAdapter : ListAdapter<Movie, MoviesAdapter.MovieViewHolder>(MovieDif
             Glide.with(itemView)
                 .load(movie.posterUrlPreview)
                 .into(ivPreviewPoster)
+            itemView.setOnClickListener {
+                onMovieClick?.invoke(movie)
+            }
         }
         if (wasReachedEnd(position, 10)) {
             onReachEnd?.invoke()
