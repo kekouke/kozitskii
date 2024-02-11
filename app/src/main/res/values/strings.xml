@@ -5,4 +5,8 @@
     <string name="network_error_message">Произошла ошибка при загрузке данных, проверьте подключение к сети</string>
     <string name="network_error_message_short">Произошла ошибка при загрузке данных</string>
     <string name="retry">Повторить</string>
+    <string name="popular">Популярное</string>
+    <string name="favourite">Избранное</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

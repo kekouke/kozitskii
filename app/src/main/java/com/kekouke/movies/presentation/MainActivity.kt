@@ -3,13 +3,16 @@ package com.kekouke.movies.presentation
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.kekouke.movies.R
-import com.kekouke.movies.data.Movie
 import com.kekouke.movies.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity(), MovieDetailFragment.OnWorkCompletedListener {
+class MainActivity :
+    AppCompatActivity(),
+    MovieListFragment.OnNetworkErrorListener,
+    MovieDetailFragment.OnWorkCompletedListener {
 
     private val viewModel by lazy {
         ViewModelProvider(this)[MainViewModel::class.java]
@@ -19,69 +22,54 @@ class MainActivity : AppCompatActivity(), MovieDetailFragment.OnWorkCompletedLis
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    private val moviesAdapter = MoviesAdapter()
+    private val popularPageName by lazy {
+        getString(R.string.popular)
+    }
+    private val favouritePageName by lazy {
+        getString(R.string.favourite)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        setupViewPager()
+    }
 
-        binding.layoutNetworkError.btnRetry.setOnClickListener {
-            viewModel.loadMovies()
-        }
+    private fun isLandscapeMode() = binding.tabs == null
 
-        binding.rvMovies.adapter = moviesAdapter.apply {
-            onReachEnd = viewModel::loadMovies
-            onMovieClick = {
-                if (isLandscapeMode()) {
-                    launchMovieDetailFragment(it)
-                } else {
-                    launchMovieDetailActivity(it)
+    private fun setupViewPager() {
+        binding.pager.adapter = ViewPagerAdapter(this)
+        if (isLandscapeMode()) {
+            binding.pager.isUserInputEnabled = true
+            binding.pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    super.onPageSelected(position)
+                    binding.tvPageLabel.text = getPageName(position)
+                }
+            })
+        } else {
+            binding.pager.isUserInputEnabled = false
+            binding.tabs?.doOnTabSelected {
+                it?.let {
+                    binding.pager.setCurrentItem(it.position, true)
+                    binding.tvPageLabel.text = getPageName(it.position)
                 }
             }
         }
-
-        observeViewModel()
     }
 
-    override fun onStart() {
-        super.onStart()
-        for (i in 0 until supportFragmentManager.backStackEntryCount) {
-            supportFragmentManager.popBackStack()
-        }
+    private fun getPageName(position: Int) = when (position) {
+        0 -> popularPageName
+        1 -> favouritePageName
+        else -> throw IllegalArgumentException("Wrong position argument: $position")
     }
 
-    private fun isLandscapeMode() = binding.movieDetailContainer != null
-
-    private fun launchMovieDetailActivity(movie: Movie) {
-        startActivity(MovieDetailActivity.newIntent(this, movie.id))
-    }
-
-    private fun launchMovieDetailFragment(movie: Movie) {
-        supportFragmentManager.popBackStack()
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.movie_detail_container, MovieDetailFragment.newInstance(movie.id))
-            .addToBackStack(null)
-            .commit()
-    }
-
-    private fun observeViewModel() {
-        viewModel.movies.observe(this) {
-            moviesAdapter.submitList(it)
-        }
-        viewModel.loading.observe(this) {
-            binding.progress.isVisible = it
-        }
-        viewModel.error.observe(this) {
-            binding.layoutNetworkError.root.isVisible = it
-            if (moviesAdapter.itemCount > 0 && it) {
-                binding.layoutNetworkError.root.isVisible = false
-                Toast.makeText(
-                    this,
-                    getString(R.string.network_error_message_short),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
+    override fun onNetworkError() {
+        Toast.makeText(
+            this,
+            getString(R.string.network_error_message_short),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     override fun onWorkCompleted() {

@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -32,10 +33,18 @@ class MovieDetailFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (context is OnWorkCompletedListener) {
-            onWorkCompletedListener = context
+        onWorkCompletedListener = if (parentFragment != null) {
+            if (requireParentFragment() is OnWorkCompletedListener) {
+                requireParentFragment() as OnWorkCompletedListener
+            } else {
+                throw RuntimeException("ParentFragment must implement OnWorkCompletedListener")
+            }
         } else {
-            throw RuntimeException("Activity must implement OnWorkCompletedListener")
+            if (context is OnWorkCompletedListener) {
+                context
+            } else {
+                throw RuntimeException("Activity must implement OnWorkCompletedListener")
+            }
         }
     }
 
@@ -76,6 +85,13 @@ class MovieDetailFragment : Fragment() {
         if (savedInstanceState == null) {
             viewModel.loadMovieDetail(movieId)
         }
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                onWorkCompletedListener.onWorkCompleted()
+            }
+        })
     }
 
     private fun observeViewModel() {
@@ -101,7 +117,7 @@ class MovieDetailFragment : Fragment() {
     }
 
     private fun setupGenresLabel(tvGenres: TextView, genres: List<Genre>) {
-        var genresAsString = StringBuilder("")
+        val genresAsString = StringBuilder("")
         var isFirst = true
         for (genre in genres) {
             if (isFirst) {
