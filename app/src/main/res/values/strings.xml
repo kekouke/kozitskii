@@ -2,4 +2,7 @@
     <string name="app_name">Movies</string>
     <string name="label_genres">Жанры: %s</string>
     <string name="label_country">Страна: %s</string>
+    <string name="network_error_message">Произошла ошибка при загрузке данных, проверьте подключение к сети</string>
+    <string name="network_error_message_short">Произошла ошибка при загрузке данных</string>
+    <string name="retry">Повторить</string>
 </resources>

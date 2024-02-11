@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
@@ -64,6 +65,13 @@ class MovieDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.layoutNetworkError.btnRetry.setOnClickListener {
+            viewModel.loadMovieDetail(movieId)
+        }
+        binding.ivBack.setOnClickListener {
+            onWorkCompletedListener.onWorkCompleted()
+        }
+
         observeViewModel()
         if (savedInstanceState == null) {
             viewModel.loadMovieDetail(movieId)
@@ -78,12 +86,12 @@ class MovieDetailFragment : Fragment() {
                     .into(ivPoster)
                 tvDescription.text = it.description
                 tvName.text = it.name
-                ivBack.setOnClickListener {
-                    onWorkCompletedListener.onWorkCompleted()
-                }
                 setupGenresLabel(tvGenres, it.genres)
                 setupCountryLabel(tvCountry, it.countries)
             }
+        }
+        viewModel.error.observe(viewLifecycleOwner) {
+            binding.layoutNetworkError.root.isVisible = it
         }
     }
 

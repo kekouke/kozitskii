@@ -1,6 +1,7 @@
 package com.kekouke.movies.presentation
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
@@ -23,6 +24,10 @@ class MainActivity : AppCompatActivity(), MovieDetailFragment.OnWorkCompletedLis
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        binding.layoutNetworkError.btnRetry.setOnClickListener {
+            viewModel.loadMovies()
+        }
 
         binding.rvMovies.adapter = moviesAdapter.apply {
             onReachEnd = viewModel::loadMovies
@@ -65,6 +70,17 @@ class MainActivity : AppCompatActivity(), MovieDetailFragment.OnWorkCompletedLis
         }
         viewModel.loading.observe(this) {
             binding.progress.isVisible = it
+        }
+        viewModel.error.observe(this) {
+            binding.layoutNetworkError.root.isVisible = it
+            if (moviesAdapter.itemCount > 0 && it) {
+                binding.layoutNetworkError.root.isVisible = false
+                Toast.makeText(
+                    this,
+                    getString(R.string.network_error_message_short),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
     }
 

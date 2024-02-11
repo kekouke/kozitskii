@@ -19,10 +19,20 @@ class MovieDetailViewModel : ViewModel() {
     val movieDetail: LiveData<MovieDetail>
         get() = _movieDetail
 
+    private var _error: MutableLiveData<Boolean> = MutableLiveData(false)
+    val error: LiveData<Boolean>
+        get() = _error
+
     fun loadMovieDetail(id: Int) {
         val disposable = repository.getMovieDetailById(id)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+            .doOnSuccess {
+                _error.value = false
+            }
+            .doOnError {
+                _error.value = true
+            }
             .subscribe(
                 {
                     _movieDetail.value = it

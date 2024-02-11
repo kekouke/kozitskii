@@ -25,6 +25,11 @@ class MainViewModel : ViewModel() {
     val loading: LiveData<Boolean>
         get() = _loading
 
+    private var _error: MutableLiveData<Boolean> = MutableLiveData(false)
+    val error: LiveData<Boolean>
+        get() = _error
+
+
     private var currentPage = 1
     private var wasLastFetch = false
 
@@ -33,15 +38,23 @@ class MainViewModel : ViewModel() {
     }
 
     fun loadMovies() {
-        Log.d("MainViewModel", "loadMovies")
         if (_loading.value!! || wasLastFetch) {
-            Log.d("MainViewModel", "not loading")
             return
         }
-        _loading.value = true
         val disposable = repository.getMovies(currentPage++)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+            .doOnSubscribe {
+                _loading.value = true
+                _error.value = false
+            }
+            .doOnTerminate {
+                _loading.value = false
+            }
+            .doOnError {
+                _error.value = true
+                currentPage--
+            }
             .subscribe(
                 {
                     wasLastFetch = currentPage > it.totalPages
@@ -50,11 +63,9 @@ class MainViewModel : ViewModel() {
                     }
                     loadedMovies?.addAll(it.movies)
                     _movies.value = loadedMovies
-                    _loading.value = false
                 },
                 {
                     Log.d("MainViewModel", "error")
-                    wasLastFetch = true
                 }
             )
         compositeDisposable.add(disposable)

@@ -1,5 +1,6 @@
 package com.kekouke.movies.presentation
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,8 @@ class MoviesAdapter : ListAdapter<Movie, MoviesAdapter.MovieViewHolder>(MovieDif
 
     var onReachEnd: (() ->Unit)? = null
     var onMovieClick: ((Movie) -> Unit)? = null
+
+    private var wasSendOnReachEndEvent = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(
@@ -38,7 +41,12 @@ class MoviesAdapter : ListAdapter<Movie, MoviesAdapter.MovieViewHolder>(MovieDif
             }
         }
         if (wasReachedEnd(position, 10)) {
-            onReachEnd?.invoke()
+            if (!wasSendOnReachEndEvent) {
+                onReachEnd?.invoke()
+                wasSendOnReachEndEvent = true
+            }
+        } else {
+            wasSendOnReachEndEvent = false
         }
     }
 
