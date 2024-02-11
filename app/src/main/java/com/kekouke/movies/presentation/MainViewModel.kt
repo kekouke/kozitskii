@@ -61,6 +61,21 @@ class MainViewModel : ViewModel() {
         compositeDisposable.add(disposable)
     }
 
+    fun getMovieDetailById() {
+        repository.getMovieDetailById(263531)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                {
+                    Log.d("MainViewModel", it.toString())
+
+                },
+                {
+                    Log.d("MainViewModel", it.toString())
+                }
+            )
+    }
+
     override fun onCleared() {
         super.onCleared()
         compositeDisposable.clear()

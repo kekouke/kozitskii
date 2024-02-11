@@ -26,6 +26,8 @@ class MainActivity : AppCompatActivity() {
             onReachEnd = viewModel::loadMovies
         }
 
+        viewModel.getMovieDetailById()
+
         observeViewModel()
     }
 

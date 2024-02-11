@@ -10,4 +10,8 @@ class MovieRepository {
         return kinopoiskAPI.getMovies(page)
     }
 
+    fun getMovieDetailById(id: Int): Single<MovieDetail> {
+        return kinopoiskAPI.getMovieDetailById(id)
+    }
+
 }
