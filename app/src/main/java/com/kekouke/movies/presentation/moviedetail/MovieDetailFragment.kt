@@ -1,4 +1,4 @@
-package com.kekouke.movies.presentation
+package com.kekouke.movies.presentation.moviedetail
 
 import android.content.Context
 import android.os.Bundle
@@ -7,13 +7,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.kekouke.movies.R
-import com.kekouke.movies.data.Country
-import com.kekouke.movies.data.Genre
+import com.kekouke.movies.data.model.Country
+import com.kekouke.movies.data.model.Genre
 import com.kekouke.movies.databinding.FragmentMovieDetailBinding
 
 class MovieDetailFragment : Fragment() {
@@ -29,13 +30,22 @@ class MovieDetailFragment : Fragment() {
     private lateinit var onWorkCompletedListener: OnWorkCompletedListener
 
     private var movieId: Int = -1
+    private var startMode: Int = -1
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (context is OnWorkCompletedListener) {
-            onWorkCompletedListener = context
+        onWorkCompletedListener = if (parentFragment != null) {
+            if (requireParentFragment() is OnWorkCompletedListener) {
+                requireParentFragment() as OnWorkCompletedListener
+            } else {
+                throw RuntimeException("ParentFragment must implement OnWorkCompletedListener")
+            }
         } else {
-            throw RuntimeException("Activity must implement OnWorkCompletedListener")
+            if (context is OnWorkCompletedListener) {
+                context
+            } else {
+                throw RuntimeException("Activity must implement OnWorkCompletedListener")
+            }
         }
     }
 
@@ -51,6 +61,7 @@ class MovieDetailFragment : Fragment() {
             throw RuntimeException("Argument movieId is absent")
         }
         movieId = args.getInt(KEY_MOVIE_ID)
+        startMode = args.getInt(KEY_MODE)
     }
 
     override fun onCreateView(
@@ -74,8 +85,21 @@ class MovieDetailFragment : Fragment() {
 
         observeViewModel()
         if (savedInstanceState == null) {
-            viewModel.loadMovieDetail(movieId)
+            if (startMode == MovieDetailActivity.MODE_POPULAR) {
+                viewModel.loadMovieDetail(movieId)
+            } else if (startMode == MovieDetailActivity.MODE_FAVOURITE) {
+                viewModel.getLocalMovieDetail(movieId)
+            } else {
+                throw RuntimeException("Unknown mode: $startMode")
+            }
         }
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                onWorkCompletedListener.onWorkCompleted()
+            }
+        })
     }
 
     private fun observeViewModel() {
@@ -83,6 +107,7 @@ class MovieDetailFragment : Fragment() {
             with (binding) {
                 Glide.with(this@MovieDetailFragment)
                     .load(it.posterUrl)
+                    .placeholder(R.drawable.movie_no_poster)
                     .into(ivPoster)
                 tvDescription.text = it.description
                 tvName.text = it.name
@@ -101,7 +126,7 @@ class MovieDetailFragment : Fragment() {
     }
 
     private fun setupGenresLabel(tvGenres: TextView, genres: List<Genre>) {
-        var genresAsString = StringBuilder("")
+        val genresAsString = StringBuilder("")
         var isFirst = true
         for (genre in genres) {
             if (isFirst) {
@@ -126,10 +151,12 @@ class MovieDetailFragment : Fragment() {
     companion object {
 
         private const val KEY_MOVIE_ID = "KEY_MOVIE_ID"
+        private const val KEY_MODE = "KEY_MODE"
 
-        fun newInstance(movieId: Int) = MovieDetailFragment().apply {
+        fun newInstance(movieId: Int, mode: Int) = MovieDetailFragment().apply {
             arguments = Bundle().apply {
                 putInt(KEY_MOVIE_ID, movieId)
+                putInt(KEY_MODE, mode)
             }
         }
     }

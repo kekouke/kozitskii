@@ -1,7 +1,7 @@
 package com.kekouke.movies.presentation
 
 import androidx.recyclerview.widget.DiffUtil
-import com.kekouke.movies.data.Movie
+import com.kekouke.movies.data.model.Movie
 
 class MovieDiffUtilCallback : DiffUtil.ItemCallback<Movie>() {
     override fun areItemsTheSame(oldItem: Movie, newItem: Movie): Boolean {

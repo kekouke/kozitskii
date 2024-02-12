@@ -43,6 +43,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
+            android:layout_marginEnd="40dp"
             android:layout_marginBottom="8dp"
             android:ellipsize="end"
             android:maxLines="1"
@@ -50,9 +51,8 @@
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@id/tv_information"
-            app:layout_constraintStart_toEndOf="@id/iv_preview_poster"
             app:layout_constraintEnd_toStartOf="@id/iv_favourite"
-            android:layout_marginEnd="40dp"
+            app:layout_constraintStart_toEndOf="@id/iv_preview_poster"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed"
             tools:text="Изгой-один: Звездные войны" />

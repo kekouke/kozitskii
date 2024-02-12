@@ -1,19 +1,20 @@
-package com.kekouke.movies.presentation
+package com.kekouke.movies.presentation.movielist
 
+import android.app.Application
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import com.kekouke.movies.data.Movie
-import com.kekouke.movies.data.MovieDetail
+import com.kekouke.movies.data.model.Movie
 import com.kekouke.movies.data.MovieRepository
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 
-class MainViewModel : ViewModel() {
+class MovieListViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = MovieRepository()
+    private val repository = MovieRepository.getInstance(application)
     private val compositeDisposable = CompositeDisposable()
 
     private var loadedMovies: MutableList<Movie>? = null
@@ -29,6 +30,11 @@ class MainViewModel : ViewModel() {
     val error: LiveData<Boolean>
         get() = _error
 
+    private var _addToFavouriteError: MutableLiveData<Boolean> = MutableLiveData()
+    val addToFavouriteError: LiveData<Boolean>
+        get() = _addToFavouriteError
+
+    val shouldReloadMovieList = repository.shouldReloadMovieList
 
     private var currentPage = 1
     private var wasLastFetch = false
@@ -65,10 +71,35 @@ class MainViewModel : ViewModel() {
                     _movies.value = loadedMovies
                 },
                 {
-                    Log.d("MainViewModel", "error")
+                    Log.d("MovieListViewModel", it.toString())
                 }
             )
         compositeDisposable.add(disposable)
+    }
+
+    fun changeFavouriteState(movie: Movie, inFavourite: Boolean) {
+        val disposable: Disposable
+        if (inFavourite) {
+            disposable = repository.removeFromFavourite(movie)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { _addToFavouriteError.value = true }
+                .doOnTerminate { _addToFavouriteError.value = false }
+                .subscribe({}, {})
+        } else {
+            disposable = repository.addToFavourite(movie)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { _addToFavouriteError.value = true }
+                .doOnTerminate { _addToFavouriteError.value = false }
+                .subscribe({}, {})
+        }
+        compositeDisposable.add(disposable)
+    }
+
+    fun reloadMovieList() {
+        loadedMovies = repository.reloadMovieList(loadedMovies)
+        _movies.value = loadedMovies
     }
 
     override fun onCleared() {

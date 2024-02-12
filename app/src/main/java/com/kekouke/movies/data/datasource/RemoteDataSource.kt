@@ -1,11 +1,12 @@
-package com.kekouke.movies.data
+package com.kekouke.movies.data.datasource
 
+import com.kekouke.movies.data.KinopoiskApiService
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 
-class MovieRemoteDataSource {
+class RemoteDataSource {
 
 
     val apiService = Retrofit.Builder()
