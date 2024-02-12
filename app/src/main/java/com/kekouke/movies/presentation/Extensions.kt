@@ -1,5 +1,7 @@
 package com.kekouke.movies.presentation
 
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.google.android.material.tabs.TabLayout
 
 fun TabLayout.doOnTabSelected(action: (TabLayout.Tab?) -> Unit) {
@@ -12,6 +14,15 @@ fun TabLayout.doOnTabSelected(action: (TabLayout.Tab?) -> Unit) {
         }
 
         override fun onTabReselected(tab: TabLayout.Tab?) {
+        }
+    })
+}
+
+fun ViewPager2.doOnPageSelected(action: (Int) -> Unit) {
+    registerOnPageChangeCallback(object : OnPageChangeCallback() {
+        override fun onPageSelected(position: Int) {
+            super.onPageSelected(position)
+            action.invoke(position)
         }
     })
 }

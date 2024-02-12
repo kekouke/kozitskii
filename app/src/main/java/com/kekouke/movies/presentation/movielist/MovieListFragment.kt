@@ -1,17 +1,20 @@
-package com.kekouke.movies.presentation
+package com.kekouke.movies.presentation.movielist
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.kekouke.movies.R
-import com.kekouke.movies.data.Movie
+import com.kekouke.movies.data.model.Movie
 import com.kekouke.movies.databinding.FragmentMovieListBinding
+import com.kekouke.movies.presentation.adapters.MoviesAdapter
+import com.kekouke.movies.presentation.moviedetail.MovieDetailActivity
+import com.kekouke.movies.presentation.moviedetail.MovieDetailFragment
 
 class MovieListFragment : Fragment(), MovieDetailFragment.OnWorkCompletedListener {
 
@@ -38,7 +41,6 @@ class MovieListFragment : Fragment(), MovieDetailFragment.OnWorkCompletedListene
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("MovieListViewModel", "onCreate")
     }
 
     override fun onStart() {
@@ -61,8 +63,14 @@ class MovieListFragment : Fragment(), MovieDetailFragment.OnWorkCompletedListene
         binding.layoutNetworkError.btnRetry.setOnClickListener {
             viewModel.loadMovies()
         }
+        setupRecyclerView()
+        observeViewModel()
+    }
+
+    private fun setupRecyclerView() {
         binding.rvMovies.adapter = moviesAdapter.apply {
             onReachEnd = viewModel::loadMovies
+            onMovieLongCLick = viewModel::changeFavouriteState
             onMovieClick = {
                 if (isLandscapeMode()) {
                     launchMovieDetailFragment(it)
@@ -71,8 +79,8 @@ class MovieListFragment : Fragment(), MovieDetailFragment.OnWorkCompletedListene
                 }
             }
         }
-        observeViewModel()
     }
+
 
     private fun observeViewModel() {
         viewModel.movies.observe(viewLifecycleOwner) {
@@ -88,19 +96,38 @@ class MovieListFragment : Fragment(), MovieDetailFragment.OnWorkCompletedListene
                 onNetworkErrorListener.onNetworkError()
             }
         }
+        viewModel.addToFavouriteError.observe(viewLifecycleOwner) {
+            if (it == false) {
+                return@observe
+            }
+            val activity = requireActivity()
+            Toast.makeText(
+                activity,
+                getString(R.string.add_to_favourite_error_message),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        viewModel.shouldReloadMovieList.observe(viewLifecycleOwner) {
+            viewModel.reloadMovieList()
+        }
     }
 
     private fun isLandscapeMode() = binding.movieDetailContainer != null
 
     private fun launchMovieDetailActivity(movie: Movie) {
         val activity = requireActivity()
-        activity.startActivity(MovieDetailActivity.newIntent(activity, movie.id))
+        activity.startActivity(
+            MovieDetailActivity.newIntent(activity, movie.id, MovieDetailActivity.MODE_POPULAR)
+        )
     }
 
     private fun launchMovieDetailFragment(movie: Movie) {
         childFragmentManager.popBackStack()
         childFragmentManager.beginTransaction()
-            .replace(R.id.movie_detail_container, MovieDetailFragment.newInstance(movie.id))
+            .replace(
+                R.id.movie_detail_container,
+                MovieDetailFragment.newInstance(movie.id, MovieDetailActivity.MODE_POPULAR)
+            )
             .addToBackStack(null)
             .commit()
     }

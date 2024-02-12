@@ -1,18 +1,19 @@
-package com.kekouke.movies.presentation
+package com.kekouke.movies.presentation.moviedetail
 
+import android.app.Application
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import com.kekouke.movies.data.MovieDetail
+import com.kekouke.movies.data.model.MovieDetail
 import com.kekouke.movies.data.MovieRepository
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 
-class MovieDetailViewModel : ViewModel() {
+class MovieDetailViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = MovieRepository()
+    private val repository = MovieRepository.getInstance(application)
     private val compositeDisposable = CompositeDisposable()
 
     private var _movieDetail: MutableLiveData<MovieDetail> = MutableLiveData()
@@ -47,6 +48,21 @@ class MovieDetailViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         compositeDisposable.clear()
+    }
+
+    fun getLocalMovieDetail(movieId: Int) {
+        val disposable = repository.getLocalMovieDetailById(movieId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                {
+                    _movieDetail.value = it
+                },
+                {
+                    Log.d("MovieDetailViewModel", it.toString())
+                }
+            )
+        compositeDisposable.add(disposable)
     }
 
 }

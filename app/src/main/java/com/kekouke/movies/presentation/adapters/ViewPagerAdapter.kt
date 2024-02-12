@@ -1,13 +1,13 @@
-package com.kekouke.movies.presentation
+package com.kekouke.movies.presentation.adapters
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.kekouke.movies.presentation.favourite.FavouriteMoviesFragment
+import com.kekouke.movies.presentation.movielist.MovieListFragment
 
-class ViewPagerAdapter(fragment: FragmentActivity) :
-    FragmentStateAdapter(fragment) {
+class ViewPagerAdapter(fragment: FragmentActivity) : FragmentStateAdapter(fragment) {
+
     override fun getItemCount(): Int = 2
 
     override fun createFragment(position: Int): Fragment = when (position) {
