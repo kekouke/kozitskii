@@ -23,8 +23,8 @@ class MovieRepository private constructor(application: Application) {
     private val moviesInFavouriteCache = mutableSetOf<Int>()
 
     val favouriteMovies = localDataSource.movieDao().getFavouriteMoviesLiveData().map {
-        it.onEach {
-            it.inFavourite = true
+        it.onEach { movie ->
+            movie.inFavourite = true
         }
     }
     val shouldReloadMovieList: LiveData<Unit> = MediatorLiveData<Unit>().apply {
@@ -57,8 +57,17 @@ class MovieRepository private constructor(application: Application) {
         }
     }
 
+    private val movieDetailsCache = hashMapOf<Int, MovieDetail>()
+
     fun getMovieDetailById(id: Int): Single<MovieDetail> {
-        return kinopoiskAPI.getMovieDetailById(id)
+        val movieDetail = movieDetailsCache[id]
+        if (movieDetail != null) {
+            return Single.fromCallable { movieDetail }
+        }
+        return kinopoiskAPI.getMovieDetailById(id).map {
+            movieDetailsCache[it.id] = it
+            it
+        }
     }
 
     fun getLocalMovieDetailById(id: Int): Single<MovieDetail> {
